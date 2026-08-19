@@ -510,7 +510,16 @@ exports.confirmTasks = async (req, res) => {
           const parsedSignDate = parseThaiDateToIso(memo.sign_date) || null;
           const parsedReceiveDate = parseThaiDateToIso(memo.receive_date) || null;
 
-          const parsedMeetingDate = parseThaiDateToIso(memo.meeting_date) || null;
+          let parsedMeetingDate = parseThaiDateToIso(memo.meeting_date) || null;
+          if (parsedMeetingDate && memo.เวลา) {
+            let t = convertThaiDigits(String(memo.เวลา).trim());
+            const timeMatch = t.match(/(\d{1,2})[\.:](\d{2})/);
+            if (timeMatch) {
+              const hh = timeMatch[1].padStart(2, '0');
+              const mm = timeMatch[2];
+              parsedMeetingDate = `${parsedMeetingDate.split(' ')[0]} ${hh}:${mm}:00`;
+            }
+          }
           const parsedReplyDueDate = parseThaiDateToIso(memo.reply_due_date) || null;
 
           let finalDueDate = memo.due_date || null;
@@ -856,8 +865,8 @@ exports.getTaskById = async (req, res) => {
         t.additional_docs,
         t.created_at AS "createdAt",
         TO_CHAR(t.sign_date, 'YYYY-MM-DD') AS sign_date,
-        TO_CHAR(t.meeting_date, 'YYYY-MM-DD') AS meeting_date,
-        TO_CHAR(t.reply_due_date, 'YYYY-MM-DD') AS reply_due_date,
+        TO_CHAR(t.meeting_date, 'YYYY-MM-DD"T"HH24:MI:SS') AS meeting_date,
+        TO_CHAR(t.reply_due_date, 'YYYY-MM-DD"T"HH24:MI:SS') AS reply_due_date,
         t.created_by,
         c.name AS "creatorName",
         d.drive_web_view_link AS document_link,

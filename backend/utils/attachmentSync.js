@@ -13,9 +13,13 @@ const cleanAdditionalDocs = (text) => {
   const parts = str.split(/(?:,\s*|\r?\n)+/).map(p => p.trim()).filter(p => {
     if (!p) return false;
     if (p === 'เอกสารต้นฉบับ' || p.includes('เอกสารต้นฉบับ')) return false;
+    // Filter out simple numeric references like "เอกสาร 1", "เอกสาร ๑-๓"
+    if (/^เอกสาร\s*[\d๐-๙]+(?:\s*[\-\–]\s*[\d๐-๙]+)?$/i.test(p)) return false;
+    // Filter out "เอกสารที่แนบมาด้วย" if it's just this generic phrase without detail
+    if (p === 'เอกสารที่แนบมาด้วย') return false;
     return true;
   });
-  return parts.length > 0 ? str : null;
+  return parts.length > 0 ? parts.join(', ') : null;
 };
 
 function parseAdditionalDocsText(text) {
